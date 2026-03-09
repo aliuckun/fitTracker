@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = 'AIzaSyAOqI3dWC89XhIECPH8ylB8C4MtSoDXkvY';
+const GEMINI_API_KEY = 'api-key';
 // Curl komutunda çalışan 'gemini-flash-latest' model ismini kullanıyoruz
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
