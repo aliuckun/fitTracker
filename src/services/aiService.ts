@@ -1,6 +1,7 @@
-const GEMINI_API_KEY = 'AIzaSyAOqI3dWC89XhIECPH8ylB8C4MtSoDXkvY';
-// Curl komutunda çalışan 'gemini-flash-latest' model ismini kullanıyoruz
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+// Yeni API anahtarın
+const GEMINI_API_KEY = 'AIzaSyB6habIl_cGi7c3aHtkmOtuRZ6rYcWwMvc';
+// URL'den key kısmını kaldırdık, Header ile göndereceğiz
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
 export const getAIFeedback = async (stats: any): Promise<string> => {
     try {
@@ -15,7 +16,9 @@ Veriler:
         const response = await fetch(GEMINI_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                // Yeni Header yapısı burada:
+                'X-goog-api-key': GEMINI_API_KEY
             },
             body: JSON.stringify({
                 contents: [{
@@ -27,17 +30,15 @@ Veriler:
         const data = await response.json();
 
         if (!response.ok) {
-            console.error('API Hata Detayı:', JSON.stringify(data));
+            console.error('API Hatası:', data);
             return "Koç şu an verileri analiz edemiyor.";
         }
 
-        // Gemini API v1beta yanıt yapısı
         const feedback = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
         return feedback?.trim() || "Harika formdasın, aynen devam!";
 
     } catch (error) {
         console.error('Bağlantı Hatası:', error);
-        return "Bağlantı hatası oluştu. Lütfen internetini kontrol et.";
+        return "Bağlantı hatası oluştu.";
     }
 };

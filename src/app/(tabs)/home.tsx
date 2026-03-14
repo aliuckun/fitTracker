@@ -4,6 +4,32 @@ import { Ionicons } from '@expo/vector-icons';
 import { UserGoals } from '../../types/user';
 import { saveUserGoals, getUserGoals } from '../../services/storageService';
 
+// 1. ADIM: Props yapısını güncelliyoruz, onPress ekledik.
+const EditableRow = ({ label, value, field, icon, unit, isEditing, onValueChange, onStartEdit }: any) => (
+    <View style={styles.infoRow}>
+        <View style={styles.labelGroup}>
+            <Ionicons name={icon} size={20} color="#666" />
+            <Text style={styles.label}>{label}</Text>
+        </View>
+        {isEditing ? (
+            <TextInput
+                style={styles.input}
+                value={value?.toString()}
+                keyboardType="numeric"
+                onChangeText={(text) => onValueChange(field, text)}
+                autoFocus={true} // Tıklanan kutucuğun anında odağa girmesi için
+            />
+        ) : (
+            // 2. ADIM: Basıldığında düzenleme modunu açan fonksiyonu çağırıyoruz
+            <TouchableOpacity onPress={onStartEdit} style={{ flex: 1, alignItems: 'flex-end' }}>
+                <Text style={styles.value}>
+                    {value} <Text style={styles.unit}>{unit}</Text>
+                </Text>
+            </TouchableOpacity>
+        )}
+    </View>
+);
+
 export default function HomeScreen() {
     const [isEditing, setIsEditing] = useState(false);
     const [goals, setGoals] = useState<UserGoals>({
@@ -25,34 +51,17 @@ export default function HomeScreen() {
         loadData();
     }, []);
 
+    const handleValueChange = (field: string, text: string) => {
+        // Sadece sayı girilmesine izin veriyoruz
+        const numericValue = text === '' ? 0 : parseFloat(text.replace(/[^0-9.]/g, ''));
+        setGoals(prev => ({ ...prev, [field]: numericValue }));
+    };
+
     const handleSave = async () => {
         await saveUserGoals(goals);
         setIsEditing(false);
         alert('Veriler başarıyla kaydedildi!');
     };
-
-    // Düzenlenebilir Satır Bileşeni
-    const EditableRow = ({ label, value, field, icon, unit }: any) => (
-        <View style={styles.infoRow}>
-            <View style={styles.labelGroup}>
-                <Ionicons name={icon} size={20} color="#666" />
-                <Text style={styles.label}>{label}</Text>
-            </View>
-            {isEditing ? (
-                <TextInput
-                    style={styles.input}
-                    value={value?.toString()}
-                    keyboardType="numeric"
-                    onChangeText={(text) => setGoals({ ...goals, [field]: parseFloat(text) || 0 })}
-                    autoFocus
-                />
-            ) : (
-                <TouchableOpacity onPress={() => setIsEditing(true)}>
-                    <Text style={styles.value}>{value} <Text style={styles.unit}>{unit}</Text></Text>
-                </TouchableOpacity>
-            )}
-        </View>
-    );
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
@@ -79,17 +88,62 @@ export default function HomeScreen() {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Fiziksel Veriler</Text>
                     <View style={styles.card}>
-                        <EditableRow label="Güncel Kilo" value={goals.weight} field="weight" icon="speedometer-outline" unit="kg" />
-                        <EditableRow label="Boy" value={goals.height} field="height" icon="resize-outline" unit="cm" />
-                        <EditableRow label="Başlangıç Kilosu" value={goals.startingWeight} field="startingWeight" icon="flag-outline" unit="kg" />
+                        <EditableRow
+                            label="Güncel Kilo"
+                            value={goals.weight}
+                            field="weight"
+                            icon="speedometer-outline"
+                            unit="kg"
+                            isEditing={isEditing}
+                            onValueChange={handleValueChange}
+                            onStartEdit={() => setIsEditing(true)} // Tıklanınca modu açar
+                        />
+                        <EditableRow
+                            label="Boy"
+                            value={goals.height}
+                            field="height"
+                            icon="resize-outline"
+                            unit="cm"
+                            isEditing={isEditing}
+                            onValueChange={handleValueChange}
+                            onStartEdit={() => setIsEditing(true)}
+                        />
+                        <EditableRow
+                            label="Başlangıç Kilosu"
+                            value={goals.startingWeight}
+                            field="startingWeight"
+                            icon="flag-outline"
+                            unit="kg"
+                            isEditing={isEditing}
+                            onValueChange={handleValueChange}
+                            onStartEdit={() => setIsEditing(true)}
+                        />
                     </View>
                 </View>
 
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Hedefler</Text>
                     <View style={styles.card}>
-                        <EditableRow label="Günlük Kalori" value={goals.dailyCalorieGoal} field="dailyCalorieGoal" icon="nutrition-outline" unit="kcal" />
-                        <EditableRow label="Haftalık Antrenman" value={goals.weeklyWorkoutGoal} field="weeklyWorkoutGoal" icon="calendar-outline" unit="gün" />
+                        <EditableRow
+                            label="Günlük Kalori"
+                            value={goals.dailyCalorieGoal}
+                            field="dailyCalorieGoal"
+                            icon="nutrition-outline"
+                            unit="kcal"
+                            isEditing={isEditing}
+                            onValueChange={handleValueChange}
+                            onStartEdit={() => setIsEditing(true)}
+                        />
+                        <EditableRow
+                            label="Haftalık Antrenman"
+                            value={goals.weeklyWorkoutGoal}
+                            field="weeklyWorkoutGoal"
+                            icon="calendar-outline"
+                            unit="gün"
+                            isEditing={isEditing}
+                            onValueChange={handleValueChange}
+                            onStartEdit={() => setIsEditing(true)}
+                        />
                     </View>
                 </View>
 
@@ -104,6 +158,9 @@ export default function HomeScreen() {
     );
 }
 
+// Stillerin geri kalanı aynı...
+
+// Stiller aynı kalacak...
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f8f9fa', padding: 20 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 50, marginBottom: 30 },

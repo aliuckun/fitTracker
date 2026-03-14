@@ -55,57 +55,91 @@ export const WorkoutModal = ({ visible, onClose, onSave, editItem }: WorkoutModa
         <Modal visible={visible} animationType="slide">
             <View style={styles.container}>
                 <View style={styles.header}>
-                    <Text style={styles.headerTitle}>{editItem ? 'Düzenle' : 'Yeni Antrenman'}</Text>
-                    <TouchableOpacity onPress={onClose}><Ionicons name="close" size={28} /></TouchableOpacity>
+                    <Text style={styles.headerTitle}>{editItem ? 'Programı Düzenle' : 'Yeni Program'}</Text>
+                    <TouchableOpacity onPress={onClose}>
+                        <Ionicons name="close" size={28} color="#1A1A1A" />
+                    </TouchableOpacity>
                 </View>
 
-                <ScrollView style={styles.form}>
-                    <Text style={styles.label}>Program Adı</Text>
+                <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
+                    <Text style={styles.inputLabel}>PROGRAM ADI</Text>
                     <TextInput
                         value={title}
                         onChangeText={setTitle}
-                        placeholder="Örn: İtme Günü"
+                        placeholder="Örn: Göğüs & Ön Kol"
+                        placeholderTextColor="#999"
                         style={styles.mainInput}
                     />
 
                     <View style={styles.exerciseHeader}>
-                        <Text style={styles.label}>Hareketler</Text>
+                        <Text style={styles.inputLabel}>HAREKETLER</Text>
                         <TouchableOpacity onPress={addExerciseField} style={styles.addExerciseBtn}>
                             <Ionicons name="add-circle" size={20} color="#2196F3" />
-                            <Text style={{ color: '#2196F3', marginLeft: 5 }}>Hareket Ekle</Text>
+                            <Text style={styles.addBtnText}>Yeni Hareket</Text>
                         </TouchableOpacity>
                     </View>
 
                     {exercises.map((ex, index) => (
                         <View key={ex.id} style={styles.exerciseCard}>
-                            <View style={styles.exerciseRow}>
-                                <TextInput
-                                    placeholder="Hareket Adı"
-                                    value={ex.name}
-                                    onChangeText={(val) => updateExercise(ex.id, 'name', val)}
-                                    style={[styles.input, { flex: 2 }]}
-                                />
-                                <TextInput
-                                    placeholder="Bölge"
-                                    value={ex.targetRegion}
-                                    onChangeText={(val) => updateExercise(ex.id, 'targetRegion', val)}
-                                    style={[styles.input, { flex: 1, marginLeft: 10 }]}
-                                />
-                                <TouchableOpacity onPress={() => removeExerciseField(ex.id)}>
-                                    <Ionicons name="trash" size={20} color="#ff4757" style={{ marginLeft: 10 }} />
+                            <View style={styles.row}>
+                                <View style={{ flex: 2 }}>
+                                    <Text style={styles.miniLabel}>HAREKET ADI</Text>
+                                    <TextInput
+                                        value={ex.name}
+                                        onChangeText={(val) => updateExercise(ex.id, 'name', val)}
+                                        style={styles.fieldInput}
+                                        placeholder="Bench Press"
+                                    />
+                                </View>
+                                <View style={{ flex: 1, marginLeft: 10 }}>
+                                    <Text style={styles.miniLabel}>BÖLGE</Text>
+                                    <TextInput
+                                        value={ex.targetRegion}
+                                        onChangeText={(val) => updateExercise(ex.id, 'targetRegion', val)}
+                                        style={styles.fieldInput}
+                                        placeholder="Göğüs"
+                                    />
+                                </View>
+                                <TouchableOpacity onPress={() => removeExerciseField(ex.id)} style={styles.deleteBtn}>
+                                    <Ionicons name="trash-outline" size={20} color="#FF4757" />
                                 </TouchableOpacity>
                             </View>
-                            <View style={styles.exerciseRow}>
-                                <TextInput placeholder="Set" keyboardType="numeric" onChangeText={(val) => updateExercise(ex.id, 'sets', parseInt(val))} style={styles.miniInput} />
-                                <TextInput placeholder="Tekrar" keyboardType="numeric" onChangeText={(val) => updateExercise(ex.id, 'reps', parseInt(val))} style={styles.miniInput} />
-                                <TextInput placeholder="Kg" keyboardType="numeric" onChangeText={(val) => updateExercise(ex.id, 'weight', parseInt(val))} style={styles.miniInput} />
+
+                            <View style={[styles.row, { marginTop: 15 }]}>
+                                <View style={styles.quadInput}>
+                                    <Text style={styles.miniLabel}>SET</Text>
+                                    <TextInput
+                                        keyboardType="numeric"
+                                        defaultValue={ex.sets.toString()}
+                                        onChangeText={(val) => updateExercise(ex.id, 'sets', parseInt(val) || 0)}
+                                        style={styles.fieldInputCenter}
+                                    />
+                                </View>
+                                <View style={styles.quadInput}>
+                                    <Text style={styles.miniLabel}>TEKRAR</Text>
+                                    <TextInput
+                                        keyboardType="numeric"
+                                        defaultValue={ex.reps.toString()}
+                                        onChangeText={(val) => updateExercise(ex.id, 'reps', parseInt(val) || 0)}
+                                        style={styles.fieldInputCenter}
+                                    />
+                                </View>
+                                <View style={styles.quadInput}>
+                                    <Text style={styles.miniLabel}>KİLO (KG)</Text>
+                                    <TextInput
+                                        keyboardType="numeric"
+                                        defaultValue={ex.weight.toString()}
+                                        onChangeText={(val) => updateExercise(ex.id, 'weight', parseInt(val) || 0)}
+                                        style={styles.fieldInputCenter}
+                                    />
+                                </View>
                             </View>
                         </View>
                     ))}
                 </ScrollView>
 
                 <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-                    <Text style={styles.saveText}>Programı Kaydet</Text>
+                    <Text style={styles.saveText}>Değişiklikleri Kaydet</Text>
                 </TouchableOpacity>
             </View>
         </Modal>
@@ -113,18 +147,22 @@ export const WorkoutModal = ({ visible, onClose, onSave, editItem }: WorkoutModa
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff', padding: 20 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 40, marginBottom: 20 },
-    headerTitle: { fontSize: 22, fontWeight: 'bold' },
+    container: { flex: 1, backgroundColor: '#F8FAFC', padding: 20 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 40, marginBottom: 25, alignItems: 'center' },
+    headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1A1A1A' },
     form: { flex: 1 },
-    label: { fontSize: 16, fontWeight: '600', marginBottom: 10, color: '#333' },
-    mainInput: { backgroundColor: '#f5f5f5', padding: 15, borderRadius: 12, marginBottom: 20 },
+    inputLabel: { fontSize: 12, fontWeight: '800', color: '#1A1A1A', marginBottom: 8, letterSpacing: 1 },
+    miniLabel: { fontSize: 10, fontWeight: '700', color: '#444', marginBottom: 5 },
+    mainInput: { backgroundColor: '#FFF', padding: 15, borderRadius: 12, marginBottom: 25, borderWidth: 1, borderColor: '#E2E8F0', color: '#1A1A1A', fontWeight: '500' },
     exerciseHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-    addExerciseBtn: { flexDirection: 'row', alignItems: 'center' },
-    exerciseCard: { backgroundColor: '#f9f9f9', padding: 15, borderRadius: 15, marginBottom: 15, borderWidth: 1, borderColor: '#eee' },
-    exerciseRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-    input: { backgroundColor: '#fff', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#ddd' },
-    miniInput: { flex: 1, backgroundColor: '#fff', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', marginRight: 10, textAlign: 'center' },
-    saveButton: { backgroundColor: '#2196F3', padding: 18, borderRadius: 15, alignItems: 'center', marginBottom: 20 },
+    addExerciseBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E3F2FD', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+    addBtnText: { color: '#2196F3', fontWeight: '700', fontSize: 12, marginLeft: 4 },
+    exerciseCard: { backgroundColor: '#FFF', padding: 18, borderRadius: 16, marginBottom: 15, borderWidth: 1, borderColor: '#E2E8F0', elevation: 2 },
+    row: { flexDirection: 'row', alignItems: 'flex-end' },
+    fieldInput: { backgroundColor: '#F8FAFC', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#CBD5E1', color: '#1A1A1A' },
+    fieldInputCenter: { backgroundColor: '#F8FAFC', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#CBD5E1', color: '#1A1A1A', textAlign: 'center' },
+    quadInput: { flex: 1, marginRight: 10 },
+    deleteBtn: { marginBottom: 10, marginLeft: 5 },
+    saveButton: { backgroundColor: '#2196F3', padding: 18, borderRadius: 15, alignItems: 'center', marginBottom: 10, elevation: 4 },
     saveText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
 });

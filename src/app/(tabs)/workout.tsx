@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutModal } from '../../components/workout/WorkoutModal';
+import { ExerciseItem } from '../../components/workout/ExerciseItem'; // Yeni eklediğimiz bileşen
 import { useWorkout } from '../../hooks/workout/useWorkout';
 
 export default function WorkoutScreen() {
     const [isModalVisible, setModalVisible] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
-
-    // Seçili tarihi ISO formatında (YYYY-MM-DD) tutuyoruz
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-    // Hook'a seçili tarihi gönderiyoruz ki o tarihteki verileri getirsin
     const { workouts, handleSaveWorkout, handleDeleteWorkout } = useWorkout(selectedDate);
 
-    // Son 7 günü hesaplayan fonksiyon
     const getLast7Days = () => {
         const days = [];
         for (let i = 0; i < 7; i++) {
@@ -32,7 +29,7 @@ export default function WorkoutScreen() {
     const weekDays = getLast7Days();
 
     const confirmDelete = (id: string) => {
-        Alert.alert("Antrenmanı Sil", "Bu antrenman programını silmek istediğine emin misin?", [
+        Alert.alert("Antrenmanı Sil", "Bu programı silmek istediğine emin misin?", [
             { text: "Vazgeç" },
             { text: "Sil", onPress: () => handleDeleteWorkout(id), style: 'destructive' }
         ]);
@@ -76,11 +73,10 @@ export default function WorkoutScreen() {
                         {selectedDate === new Date().toISOString().split('T')[0] ? 'Bugün' : 'Seçili Gün'}
                     </Text>
                     <Text style={styles.summaryValue}>
-                        {workouts.length} <Text style={{ fontSize: 18 }}>Antrenman</Text>
+                        {workouts.length} <Text style={{ fontSize: 18, color: '#fff' }}>Antrenman</Text>
                     </Text>
                 </View>
 
-                {/* LİSTE BAŞLIĞI */}
                 <Text style={styles.sectionTitle}>Günlük Program</Text>
 
                 {workouts.length === 0 ? (
@@ -91,20 +87,27 @@ export default function WorkoutScreen() {
                 ) : (
                     workouts.map((workout) => (
                         <View key={workout.id} style={styles.card}>
-                            <View style={styles.workoutIcon}>
-                                <Ionicons name="fitness" size={24} color="#2196F3" />
+                            {/* Üst Bilgi Satırı */}
+                            <View style={styles.cardHeaderRow}>
+                                <View style={styles.titleGroup}>
+                                    <Text style={styles.cardTitle}>{workout.title}</Text>
+                                    <Text style={styles.cardSubtitle}>{workout.exercises.length} Hareket</Text>
+                                </View>
+                                <View style={styles.actions}>
+                                    <TouchableOpacity onPress={() => { setEditingItem(workout); setModalVisible(true); }}>
+                                        <Ionicons name="pencil-outline" size={22} color="#4A90E2" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => confirmDelete(workout.id)} style={{ marginLeft: 15 }}>
+                                        <Ionicons name="trash-outline" size={22} color="#FF4757" />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                            <View style={{ flex: 1 }}>
-                                <Text style={styles.cardTitle}>{workout.title}</Text>
-                                <Text style={styles.cardSubtitle}>{workout.exercises.length} Hareket Planlandı</Text>
-                            </View>
-                            <View style={styles.actions}>
-                                <TouchableOpacity onPress={() => { setEditingItem(workout); setModalVisible(true); }}>
-                                    <Ionicons name="pencil-outline" size={20} color="#4A90E2" />
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => confirmDelete(workout.id)} style={{ marginLeft: 15 }}>
-                                    <Ionicons name="trash-outline" size={20} color="#ff4757" />
-                                </TouchableOpacity>
+
+                            {/* Hareket Listesi */}
+                            <View style={styles.exerciseList}>
+                                {workout.exercises.map((ex: any) => (
+                                    <ExerciseItem key={ex.id} exercise={ex} />
+                                ))}
                             </View>
                         </View>
                     ))
@@ -122,31 +125,74 @@ export default function WorkoutScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 20 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 60, marginBottom: 20 },
-    headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#1a1a1a' },
-    addButton: { backgroundColor: '#2196F3', borderRadius: 12, padding: 6, elevation: 3 },
-
-    // Gün Paneli Stilleri
+    container: { flex: 1, backgroundColor: '#F5F7FA', paddingHorizontal: 20 },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: Platform.OS === 'ios' ? 60 : 40,
+        marginBottom: 20
+    },
+    headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#1A1A1A' },
+    addButton: { backgroundColor: '#2196F3', borderRadius: 12, padding: 8, elevation: 5 },
     daysContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
-    dayCard: { alignItems: 'center', paddingVertical: 12, borderRadius: 18, backgroundColor: '#f8f9fa', width: 46, borderWidth: 1, borderColor: '#eee' },
-    selectedDayCard: { backgroundColor: '#2196F3', elevation: 4, borderColor: '#2196F3' },
-    dayName: { fontSize: 11, color: '#888', textTransform: 'uppercase' },
-    dayNumber: { fontSize: 16, fontWeight: 'bold', marginTop: 4, color: '#333' },
-    selectedText: { color: '#fff' },
-    activeDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#fff', marginTop: 4 },
+    dayCard: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        borderRadius: 18,
+        backgroundColor: '#FFFFFF',
+        width: 46,
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        elevation: 3
+    },
+    selectedDayCard: { backgroundColor: '#2196F3', borderColor: '#2196F3' },
+    dayName: { fontSize: 10, color: '#757575', textTransform: 'uppercase', fontWeight: '600' },
+    dayNumber: { fontSize: 16, fontWeight: 'bold', marginTop: 4, color: '#212121' },
+    selectedText: { color: '#FFFFFF' },
+    activeDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#FFFFFF', marginTop: 4 },
+    summaryCard: {
+        backgroundColor: '#1A1A1A',
+        padding: 25,
+        borderRadius: 24,
+        alignItems: 'center',
+        marginBottom: 25,
+        elevation: 8
+    },
+    summaryLabel: { color: '#BDBDBD', fontSize: 14, fontWeight: '600' },
+    summaryValue: { color: '#FFFFFF', fontSize: 34, fontWeight: 'bold', marginTop: 8 },
+    sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#1A1A1A' },
 
-    summaryCard: { backgroundColor: '#1a1a1a', padding: 25, borderRadius: 24, alignItems: 'center', marginBottom: 25, elevation: 5 },
-    summaryLabel: { color: '#aaa', fontSize: 14, fontWeight: '500' },
-    summaryValue: { color: '#fff', fontSize: 36, fontWeight: 'bold', marginTop: 8 },
-
-    sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#1a1a1a' },
-    card: { flexDirection: 'row', backgroundColor: '#fff', padding: 15, borderRadius: 20, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#f0f0f0', elevation: 1 },
-    workoutIcon: { width: 45, height: 45, borderRadius: 15, backgroundColor: '#E3F2FD', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-    cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-    cardSubtitle: { color: '#777', fontSize: 13, marginTop: 2 },
-    actions: { flexDirection: 'row', alignItems: 'center', paddingLeft: 10 },
-
-    emptyContainer: { alignItems: 'center', marginTop: 40 },
-    emptyText: { color: '#aaa', marginTop: 10, fontSize: 15 }
+    // Kart Düzeltmeleri
+    card: {
+        backgroundColor: '#FFFFFF',
+        padding: 18,
+        borderRadius: 20,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4
+    },
+    cardHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 15
+    },
+    titleGroup: { flex: 1 },
+    cardTitle: { fontSize: 18, fontWeight: '700', color: '#212121' },
+    cardSubtitle: { color: '#616161', fontSize: 14, fontWeight: '500', marginTop: 2 },
+    actions: { flexDirection: 'row', alignItems: 'center' },
+    exerciseList: {
+        borderTopWidth: 1,
+        borderTopColor: '#F0F0F0',
+        paddingTop: 10
+    },
+    emptyContainer: { alignItems: 'center', marginTop: 60, opacity: 0.6 },
+    emptyText: { color: '#757575', marginTop: 12, fontSize: 16, fontWeight: '500' }
 });

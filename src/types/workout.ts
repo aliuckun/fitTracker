@@ -5,7 +5,7 @@ export interface Exercise {
     targetRegion: string;  // Hedef bölge (örn: Göğüs, Arka Kol)
     sets: number;          // Set sayısı
     reps: number;          // Tekrar sayısı
-    weight?: number;       // Opsiyonel: Ağırlık (kg)
+    weight: number;       // Opsiyonel: Ağırlık (kg)
 
 }
 
