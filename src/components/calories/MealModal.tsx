@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FoodItem } from '../../types/calories';
 
@@ -36,33 +36,38 @@ export const MealModal = ({ visible, onClose, onSave, editItem }: MealModalProps
 
     return (
         <Modal visible={visible} animationType="slide" transparent={true}>
-            <View style={styles.overlay}>
-                <View style={styles.content}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>{editItem ? 'Öğünü Düzenle' : 'Yemek Ekle'}</Text>
-                        <TouchableOpacity onPress={onClose}><Ionicons name="close" size={24} /></TouchableOpacity>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+            >
+                <View style={styles.overlay}>
+                    <View style={styles.content}>
+                        <View style={styles.header}>
+                            <Text style={styles.title}>{editItem ? 'Öğünü Düzenle' : 'Yemek Ekle'}</Text>
+                            <TouchableOpacity onPress={onClose}><Ionicons name="close" size={24} /></TouchableOpacity>
+                        </View>
+
+                        <TextInput placeholder="Yemek Adı" value={name} onChangeText={setName} style={styles.input} />
+                        <TextInput placeholder="Kalori (kcal)" value={calories} onChangeText={setCalories} keyboardType="numeric" style={styles.input} />
+
+                        <View style={styles.repastContainer}>
+                            {['Sabah', 'Öğle', 'Akşam'].map((item) => (
+                                <TouchableOpacity
+                                    key={item}
+                                    onPress={() => setRepast(item)}
+                                    style={[styles.repastBadge, repast === item && styles.activeBadge]}
+                                >
+                                    <Text style={repast === item && { color: '#fff' }}>{item}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+                            <Text style={styles.saveText}>Kaydet</Text>
+                        </TouchableOpacity>
                     </View>
-
-                    <TextInput placeholder="Yemek Adı" value={name} onChangeText={setName} style={styles.input} />
-                    <TextInput placeholder="Kalori (kcal)" value={calories} onChangeText={setCalories} keyboardType="numeric" style={styles.input} />
-
-                    <View style={styles.repastContainer}>
-                        {['Sabah', 'Öğle', 'Akşam'].map((item) => (
-                            <TouchableOpacity
-                                key={item}
-                                onPress={() => setRepast(item)}
-                                style={[styles.repastBadge, repast === item && styles.activeBadge]}
-                            >
-                                <Text style={repast === item && { color: '#fff' }}>{item}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-                        <Text style={styles.saveText}>Kaydet</Text>
-                    </TouchableOpacity>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 };

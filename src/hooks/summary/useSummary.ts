@@ -7,60 +7,76 @@ export const useSummary = () => {
     const [chartData, setChartData] = useState<any[]>([]);
 
     const calculateStats = useCallback(async () => {
-        const goals = await getUserGoals();
-        const calorieHistory = [];
-        let totalCals = 0;
-        let workoutDaysInLast7Days = 0;
-        const activityStatus = [];
+        try {
+            const goals = await getUserGoals();
+            let totalCals = 0;
+            let workoutDays = 0;
+            const activityStatus = [];
+            const calorieHistory = [];
+            const workoutSummary: string[] = [];
+            const mealSummary: string[] = []; // AI için yemek listesi
 
-        // Son 14 günü tara
-        for (let i = 0; i < 14; i++) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
+            for (let i = 0; i < 14; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
 
-            // Tarihi YYYY-MM-DD formatında yerel saate göre al (Hata payını sıfırlar)
-            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                const meals = await getDailyMeals(dateStr);
+                const dailyWorkouts = await getDailyWorkouts(dateStr);
 
-            const meals = await getDailyMeals(dateStr);
-            const workouts = await getDailyWorkouts(dateStr);
+                const dayTotal = meals.reduce((sum, m) => sum + m.calories, 0);
 
-            const dayTotal = meals.reduce((sum, m) => sum + m.calories, 0);
-
-            // Grafik için veri formatı (Gifted Charts formatı)
-            calorieHistory.push({
-                value: dayTotal,
-                label: i % 3 === 0 ? d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '', // Sadece bazı günleri etiketle ki grafik sıkışmasın
-                date: dateStr
-            });
-
-            if (i < 7) {
-                activityStatus.push({
-                    dayName: d.toLocaleDateString('tr-TR', { weekday: 'short' }),
-                    hasWorkout: workouts.length > 0,
+                calorieHistory.push({
+                    value: dayTotal,
+                    label: i % 2 === 0 ? d.getDate().toString() : '',
                 });
-                if (workouts.length > 0) workoutDaysInLast7Days++;
+
+                if (i < 7) {
+                    activityStatus.push({
+                        dayName: d.toLocaleDateString('tr-TR', { weekday: 'short' }),
+                        hasWorkout: dailyWorkouts.length > 0,
+                    });
+
+                    // Yemek Detaylarını Topla
+                    if (meals.length > 0) {
+                        meals.forEach(m => {
+                            // Örn: "Yumurta (Kahvaltı) - 150 kcal"
+                            mealSummary.push(`${m.name} (${m.repast}) - ${m.calories} kcal`);
+                        });
+                    }
+
+                    // Antrenman Detaylarını Topla
+                    if (dailyWorkouts.length > 0) {
+                        workoutDays++;
+                        dailyWorkouts.forEach(workout => {
+                            workout.exercises.forEach((ex: any) => {
+                                const detail = `${ex.name} (${ex.targetRegion || 'Genel'}): ${ex.sets}x${ex.reps} @${ex.weight}kg`;
+                                workoutSummary.push(detail);
+                            });
+                        });
+                    }
+                }
+                totalCals += dayTotal;
             }
 
-            totalCals += dayTotal;
+            setStats({
+                height: goals?.height || 0,
+                weight: goals?.weight || 0,
+                totalWorkoutDays: workoutDays,
+                avgDailyCalories: (totalCals / 14).toFixed(0),
+                dailyGoal: goals?.dailyCalorieGoal || 2000,
+                activityStatus: activityStatus.reverse(),
+                workoutDetails: workoutSummary.join(' | '),
+                mealDetails: mealSummary.join(' | '), // Yeni alan: Yemekler
+            });
+
+            setChartData(calorieHistory.reverse());
+        } catch (error) {
+            console.error("Hata:", error);
         }
-
-        setStats({
-            totalWorkoutDays: workoutDaysInLast7Days,
-            avgWorkoutPerWeek: (workoutDaysInLast7Days).toFixed(1),
-            avgDailyCalories: (totalCals / 7).toFixed(0),
-            activityStatus: activityStatus.reverse(),
-            dailyGoal: goals?.dailyCalorieGoal || 2000
-        });
-
-        // Grafiği eskiden yeniye sırala
-        setChartData(calorieHistory.reverse());
     }, []);
 
-    useFocusEffect(
-        useCallback(() => {
-            calculateStats();
-        }, [calculateStats])
-    );
+    useFocusEffect(useCallback(() => { calculateStats(); }, [calculateStats]));
 
-    return { stats, chartData };
+    return { stats, chartData, refresh: calculateStats };
 };

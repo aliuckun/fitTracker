@@ -3,17 +3,16 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { MealModal } from '../../components/calories/MealModal';
 import { FoodItem } from '../../types/calories';
-import { saveDailyMeals, getDailyMeals } from '../../services/storageService';
+import { saveDailyMeals, getDailyMeals, getUserGoals } from '../../services/storageService'; // getUserGoals eklendi
 
 export default function CalorieScreen() {
     const [meals, setMeals] = useState<FoodItem[]>([]);
     const [isModalVisible, setModalVisible] = useState(false);
     const [editingItem, setEditingItem] = useState<FoodItem | null>(null);
+    const [dailyGoal, setDailyGoal] = useState<number>(2000); // Varsayılan hedef
 
-    // Seçili tarihi ISO formatında (YYYY-MM-DD) tutuyoruz
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-    // Son 7 günü hesaplayan fonksiyon
     const getLast7Days = () => {
         const days = [];
         for (let i = 0; i < 7; i++) {
@@ -25,19 +24,26 @@ export default function CalorieScreen() {
                 fullDate: d.toISOString().split('T')[0],
             });
         }
-        return days.reverse(); // Eskiden yeniye (bugüne) doğru sırala
+        return days.reverse();
     };
 
     const weekDays = getLast7Days();
 
-    // Tarih değiştikçe verileri AsyncStorage'dan çek
     useEffect(() => {
-        loadMeals();
+        loadData();
     }, [selectedDate]);
 
-    const loadMeals = async () => {
-        const data = await getDailyMeals(selectedDate);
-        setMeals(data);
+    const loadData = async () => {
+        // Hem öğünleri hem de kullanıcı hedefini yükle
+        const [mealsData, userGoals] = await Promise.all([
+            getDailyMeals(selectedDate),
+            getUserGoals()
+        ]);
+
+        setMeals(mealsData);
+        if (userGoals?.dailyCalorieGoal) {
+            setDailyGoal(userGoals.dailyCalorieGoal);
+        }
     };
 
     const handleSaveMeal = async (mealData: Omit<FoodItem, 'id'>, id?: string) => {
@@ -69,7 +75,6 @@ export default function CalorieScreen() {
 
     return (
         <View style={styles.container}>
-            {/* HEADER */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Kalori Takibi</Text>
                 <TouchableOpacity onPress={() => { setEditingItem(null); setModalVisible(true); }} style={styles.addButton}>
@@ -77,7 +82,6 @@ export default function CalorieScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* SON 7 GÜN PANELİ */}
             <View style={styles.daysContainer}>
                 {weekDays.map((item) => {
                     const isSelected = selectedDate === item.fullDate;
@@ -96,15 +100,23 @@ export default function CalorieScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-                {/* ÖZET KARTI */}
+                {/* ÖZET KARTI - GÜNCELLENDİ */}
                 <View style={styles.summaryCard}>
                     <Text style={styles.summaryLabel}>
-                        {selectedDate === new Date().toISOString().split('T')[0] ? 'Bugün' : 'Seçili Gün'} Toplamı
+                        {selectedDate === new Date().toISOString().split('T')[0] ? 'Bugün' : 'Seçili Gün'} Durumu
                     </Text>
-                    <Text style={styles.summaryValue}>{totalCalories} <Text style={{ fontSize: 18 }}>kcal</Text></Text>
+                    <Text style={styles.summaryValue}>
+                        {totalCalories}
+                        <Text style={styles.goalValue}> / {dailyGoal} kcal</Text>
+                    </Text>
+                    {/* Opsiyonel: Kalan kalori bilgisi */}
+                    <Text style={styles.remainingLabel}>
+                        {dailyGoal - totalCalories > 0
+                            ? `${dailyGoal - totalCalories} kcal daha alabilirsin`
+                            : 'Hedefi aştın!'}
+                    </Text>
                 </View>
 
-                {/* LİSTE BAŞLIĞI */}
                 <Text style={styles.sectionTitle}>Öğünler</Text>
 
                 {meals.length === 0 ? (
@@ -146,12 +158,11 @@ export default function CalorieScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 20 },
+    container: { flex: 1, backgroundColor: '#f8f9fa', paddingHorizontal: 20 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 60, marginBottom: 20 },
     headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#1a1a1a' },
     addButton: { backgroundColor: '#ff4757', borderRadius: 12, padding: 6, elevation: 3 },
 
-    // Gün Paneli Stilleri
     daysContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
     dayCard: { alignItems: 'center', paddingVertical: 12, borderRadius: 18, backgroundColor: '#f8f9fa', width: 46, borderWidth: 1, borderColor: '#eee' },
     selectedDayCard: { backgroundColor: '#ff4757', elevation: 4 },
@@ -162,7 +173,9 @@ const styles = StyleSheet.create({
 
     summaryCard: { backgroundColor: '#1a1a1a', padding: 25, borderRadius: 24, alignItems: 'center', marginBottom: 25, elevation: 5 },
     summaryLabel: { color: '#aaa', fontSize: 14, fontWeight: '500' },
-    summaryValue: { color: '#fff', fontSize: 36, fontWeight: 'bold', marginTop: 8 },
+    summaryValue: { color: '#fff', fontSize: 32, fontWeight: 'bold', marginTop: 8 },
+    goalValue: { fontSize: 18, color: '#888', fontWeight: 'normal' },
+    remainingLabel: { color: '#4CAF50', fontSize: 12, marginTop: 8, fontWeight: '600' },
 
     sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#1a1a1a' },
     mealCard: { flexDirection: 'row', backgroundColor: '#fff', padding: 15, borderRadius: 20, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#f0f0f0', elevation: 1 },

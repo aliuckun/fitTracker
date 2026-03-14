@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Exercise, WorkoutSession } from '../../types/workout';
 
@@ -53,95 +53,100 @@ export const WorkoutModal = ({ visible, onClose, onSave, editItem }: WorkoutModa
 
     return (
         <Modal visible={visible} animationType="slide">
-            <View style={styles.container}>
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>{editItem ? 'Programı Düzenle' : 'Yeni Program'}</Text>
-                    <TouchableOpacity onPress={onClose}>
-                        <Ionicons name="close" size={28} color="#1A1A1A" />
-                    </TouchableOpacity>
-                </View>
-
-                <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
-                    <Text style={styles.inputLabel}>PROGRAM ADI</Text>
-                    <TextInput
-                        value={title}
-                        onChangeText={setTitle}
-                        placeholder="Örn: Göğüs & Ön Kol"
-                        placeholderTextColor="#999"
-                        style={styles.mainInput}
-                    />
-
-                    <View style={styles.exerciseHeader}>
-                        <Text style={styles.inputLabel}>HAREKETLER</Text>
-                        <TouchableOpacity onPress={addExerciseField} style={styles.addExerciseBtn}>
-                            <Ionicons name="add-circle" size={20} color="#2196F3" />
-                            <Text style={styles.addBtnText}>Yeni Hareket</Text>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+            >
+                <View style={styles.container}>
+                    <View style={styles.header}>
+                        <Text style={styles.headerTitle}>{editItem ? 'Programı Düzenle' : 'Yeni Program'}</Text>
+                        <TouchableOpacity onPress={onClose}>
+                            <Ionicons name="close" size={28} color="#1A1A1A" />
                         </TouchableOpacity>
                     </View>
 
-                    {exercises.map((ex, index) => (
-                        <View key={ex.id} style={styles.exerciseCard}>
-                            <View style={styles.row}>
-                                <View style={{ flex: 2 }}>
-                                    <Text style={styles.miniLabel}>HAREKET ADI</Text>
-                                    <TextInput
-                                        value={ex.name}
-                                        onChangeText={(val) => updateExercise(ex.id, 'name', val)}
-                                        style={styles.fieldInput}
-                                        placeholder="Bench Press"
-                                    />
-                                </View>
-                                <View style={{ flex: 1, marginLeft: 10 }}>
-                                    <Text style={styles.miniLabel}>BÖLGE</Text>
-                                    <TextInput
-                                        value={ex.targetRegion}
-                                        onChangeText={(val) => updateExercise(ex.id, 'targetRegion', val)}
-                                        style={styles.fieldInput}
-                                        placeholder="Göğüs"
-                                    />
-                                </View>
-                                <TouchableOpacity onPress={() => removeExerciseField(ex.id)} style={styles.deleteBtn}>
-                                    <Ionicons name="trash-outline" size={20} color="#FF4757" />
-                                </TouchableOpacity>
-                            </View>
+                    <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
+                        <Text style={styles.inputLabel}>PROGRAM ADI</Text>
+                        <TextInput
+                            value={title}
+                            onChangeText={setTitle}
+                            placeholder="Örn: Göğüs & Ön Kol"
+                            placeholderTextColor="#999"
+                            style={styles.mainInput}
+                        />
 
-                            <View style={[styles.row, { marginTop: 15 }]}>
-                                <View style={styles.quadInput}>
-                                    <Text style={styles.miniLabel}>SET</Text>
-                                    <TextInput
-                                        keyboardType="numeric"
-                                        defaultValue={ex.sets.toString()}
-                                        onChangeText={(val) => updateExercise(ex.id, 'sets', parseInt(val) || 0)}
-                                        style={styles.fieldInputCenter}
-                                    />
-                                </View>
-                                <View style={styles.quadInput}>
-                                    <Text style={styles.miniLabel}>TEKRAR</Text>
-                                    <TextInput
-                                        keyboardType="numeric"
-                                        defaultValue={ex.reps.toString()}
-                                        onChangeText={(val) => updateExercise(ex.id, 'reps', parseInt(val) || 0)}
-                                        style={styles.fieldInputCenter}
-                                    />
-                                </View>
-                                <View style={styles.quadInput}>
-                                    <Text style={styles.miniLabel}>KİLO (KG)</Text>
-                                    <TextInput
-                                        keyboardType="numeric"
-                                        defaultValue={ex.weight.toString()}
-                                        onChangeText={(val) => updateExercise(ex.id, 'weight', parseInt(val) || 0)}
-                                        style={styles.fieldInputCenter}
-                                    />
-                                </View>
-                            </View>
+                        <View style={styles.exerciseHeader}>
+                            <Text style={styles.inputLabel}>HAREKETLER</Text>
+                            <TouchableOpacity onPress={addExerciseField} style={styles.addExerciseBtn}>
+                                <Ionicons name="add-circle" size={20} color="#2196F3" />
+                                <Text style={styles.addBtnText}>Yeni Hareket</Text>
+                            </TouchableOpacity>
                         </View>
-                    ))}
-                </ScrollView>
 
-                <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-                    <Text style={styles.saveText}>Değişiklikleri Kaydet</Text>
-                </TouchableOpacity>
-            </View>
+                        {exercises.map((ex, index) => (
+                            <View key={ex.id} style={styles.exerciseCard}>
+                                <View style={styles.row}>
+                                    <View style={{ flex: 2 }}>
+                                        <Text style={styles.miniLabel}>HAREKET ADI</Text>
+                                        <TextInput
+                                            value={ex.name}
+                                            onChangeText={(val) => updateExercise(ex.id, 'name', val)}
+                                            style={styles.fieldInput}
+                                            placeholder="Bench Press"
+                                        />
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 10 }}>
+                                        <Text style={styles.miniLabel}>BÖLGE</Text>
+                                        <TextInput
+                                            value={ex.targetRegion}
+                                            onChangeText={(val) => updateExercise(ex.id, 'targetRegion', val)}
+                                            style={styles.fieldInput}
+                                            placeholder="Göğüs"
+                                        />
+                                    </View>
+                                    <TouchableOpacity onPress={() => removeExerciseField(ex.id)} style={styles.deleteBtn}>
+                                        <Ionicons name="trash-outline" size={20} color="#FF4757" />
+                                    </TouchableOpacity>
+                                </View>
+
+                                <View style={[styles.row, { marginTop: 15 }]}>
+                                    <View style={styles.quadInput}>
+                                        <Text style={styles.miniLabel}>SET</Text>
+                                        <TextInput
+                                            keyboardType="numeric"
+                                            defaultValue={ex.sets.toString()}
+                                            onChangeText={(val) => updateExercise(ex.id, 'sets', parseInt(val) || 0)}
+                                            style={styles.fieldInputCenter}
+                                        />
+                                    </View>
+                                    <View style={styles.quadInput}>
+                                        <Text style={styles.miniLabel}>TEKRAR</Text>
+                                        <TextInput
+                                            keyboardType="numeric"
+                                            defaultValue={ex.reps.toString()}
+                                            onChangeText={(val) => updateExercise(ex.id, 'reps', parseInt(val) || 0)}
+                                            style={styles.fieldInputCenter}
+                                        />
+                                    </View>
+                                    <View style={styles.quadInput}>
+                                        <Text style={styles.miniLabel}>KİLO (KG)</Text>
+                                        <TextInput
+                                            keyboardType="numeric"
+                                            defaultValue={ex.weight.toString()}
+                                            onChangeText={(val) => updateExercise(ex.id, 'weight', parseInt(val) || 0)}
+                                            style={styles.fieldInputCenter}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        ))}
+                    </ScrollView>
+
+                    <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+                        <Text style={styles.saveText}>Değişiklikleri Kaydet</Text>
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 };

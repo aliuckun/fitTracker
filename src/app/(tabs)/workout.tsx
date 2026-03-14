@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WorkoutModal } from '../../components/workout/WorkoutModal';
-import { ExerciseItem } from '../../components/workout/ExerciseItem'; // Yeni eklediğimiz bileşen
+import { ExerciseItem } from '../../components/workout/ExerciseItem';
 import { useWorkout } from '../../hooks/workout/useWorkout';
 
 export default function WorkoutScreen() {
@@ -37,7 +37,6 @@ export default function WorkoutScreen() {
 
     return (
         <View style={styles.container}>
-            {/* HEADER */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Antrenmanlar</Text>
                 <TouchableOpacity
@@ -48,7 +47,6 @@ export default function WorkoutScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* SON 7 GÜN PANELİ */}
             <View style={styles.daysContainer}>
                 {weekDays.map((item) => {
                     const isSelected = selectedDate === item.fullDate;
@@ -67,15 +65,7 @@ export default function WorkoutScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-                {/* ÖZET KARTI */}
-                <View style={styles.summaryCard}>
-                    <Text style={styles.summaryLabel}>
-                        {selectedDate === new Date().toISOString().split('T')[0] ? 'Bugün' : 'Seçili Gün'}
-                    </Text>
-                    <Text style={styles.summaryValue}>
-                        {workouts.length} <Text style={{ fontSize: 18, color: '#fff' }}>Antrenman</Text>
-                    </Text>
-                </View>
+                {/* ÖZET KARTI BURADAN SİLİNDİ */}
 
                 <Text style={styles.sectionTitle}>Günlük Program</Text>
 
@@ -87,7 +77,6 @@ export default function WorkoutScreen() {
                 ) : (
                     workouts.map((workout) => (
                         <View key={workout.id} style={styles.card}>
-                            {/* Üst Bilgi Satırı */}
                             <View style={styles.cardHeaderRow}>
                                 <View style={styles.titleGroup}>
                                     <Text style={styles.cardTitle}>{workout.title}</Text>
@@ -103,7 +92,6 @@ export default function WorkoutScreen() {
                                 </View>
                             </View>
 
-                            {/* Hareket Listesi */}
                             <View style={styles.exerciseList}>
                                 {workout.exercises.map((ex: any) => (
                                     <ExerciseItem key={ex.id} exercise={ex} />
@@ -123,6 +111,8 @@ export default function WorkoutScreen() {
         </View>
     );
 }
+
+// Stiller aynı kalıyor...
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F5F7FA', paddingHorizontal: 20 },
